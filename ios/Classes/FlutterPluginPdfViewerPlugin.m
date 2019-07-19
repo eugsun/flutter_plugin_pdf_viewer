@@ -103,8 +103,12 @@ static NSString* kFileName = @"";
     UIGraphicsBeginPDFContextToFile(imageFilePath, sourceRect, nil);
 
     // Calculate resolution
-    // Set DPI to 300
-    CGFloat dpi = 300.0 / 72.0;
+    CGFloat dpi = 1;
+    if (sourceRect.size.width > sourceRect.size.height) {
+      dpi = 2048 / sourceRect.size.width;
+    } else {
+      dpi = 2048 / sourceRect.size.height;
+    }
     CGFloat width = sourceRect.size.width * dpi;
     CGFloat height = sourceRect.size.height * dpi;
 
@@ -130,10 +134,10 @@ static NSString* kFileName = @"";
     }
 
     // Change interpolation settings
-    CGContextSetInterpolationQuality(currentContext, kCGInterpolationHigh);
+    CGContextSetInterpolationQuality(currentContext, kCGInterpolationDefault);
     // Fill background with white color
-    CGContextSetRGBFillColor(currentContext, 1.0f, 1.0f, 1.0f, 1.0f);
-    CGContextFillRect(currentContext, CGContextGetClipBoundingBox(currentContext));
+    // CGContextSetRGBFillColor(currentContext, 1.0f, 1.0f, 1.0f, 1.0f);
+    // CGContextFillRect(currentContext, CGContextGetClipBoundingBox(currentContext));
     CGContextTranslateCTM(currentContext, 0.0, realHeight);
     CGContextScaleCTM(currentContext, dpi, -dpi);
     CGContextSaveGState(currentContext);
@@ -142,6 +146,9 @@ static NSString* kFileName = @"";
     CGContextRestoreGState(currentContext);
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
+    CGPDFPageRelease(SourcePDFPage);
+    CGPDFDocumentRelease(SourcePDFDocument);
+
     [UIImagePNGRepresentation(image) writeToFile: imageFilePath atomically:YES];
     return imageFilePath;
 }
