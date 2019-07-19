@@ -1,4 +1,6 @@
 #import "FlutterPluginPdfViewerPlugin.h"
+#include <math.h>
+
 
 static NSString* const kDirectory = @"FlutterPluginPdfViewer";
 static NSString* const kFilePath = @"file:///";
@@ -99,22 +101,43 @@ static NSString* kFileName = @"";
     NSString *imageFilePath = [documentsDirectory stringByAppendingPathComponent:relativeOutputFilePath];
     CGRect sourceRect = CGPDFPageGetBoxRect(SourcePDFPage, kCGPDFMediaBox);
     UIGraphicsBeginPDFContextToFile(imageFilePath, sourceRect, nil);
+
     // Calculate resolution
     // Set DPI to 300
     CGFloat dpi = 300.0 / 72.0;
     CGFloat width = sourceRect.size.width * dpi;
     CGFloat height = sourceRect.size.height * dpi;
-    UIGraphicsBeginImageContext(CGSizeMake(width, height));
+
+    // Need to rotate?
+    CGFloat rotation = CGPDFPageGetRotationAngle(SourcePDFPage);
+    NSLog(@"Rotation: %i", CGPDFPageGetRotationAngle(SourcePDFPage));
+    CGFloat realWidth = width;
+    CGFloat realHeight = height;
+    if (rotation == 90 || rotation == 270 || rotation == -90 || rotation == -270) {
+      realWidth = height;
+      realHeight = width;
+    }
+
+    UIGraphicsBeginImageContext(CGSizeMake(realWidth, realHeight));
     // Fill Background
     CGContextRef currentContext = UIGraphicsGetCurrentContext();
+
+    // Rotate
+    if (rotation != 0) {
+        CGContextTranslateCTM(currentContext, width / 2, height / 2);
+        CGContextRotateCTM(currentContext, rotation * M_PI / 180);
+        CGContextTranslateCTM(currentContext, -realWidth/2, -realHeight/2);
+    }
+
     // Change interpolation settings
     CGContextSetInterpolationQuality(currentContext, kCGInterpolationHigh);
     // Fill background with white color
     CGContextSetRGBFillColor(currentContext, 1.0f, 1.0f, 1.0f, 1.0f);
     CGContextFillRect(currentContext, CGContextGetClipBoundingBox(currentContext));
-    CGContextTranslateCTM(currentContext, 0.0, height);
+    CGContextTranslateCTM(currentContext, 0.0, realHeight);
     CGContextScaleCTM(currentContext, dpi, -dpi);
     CGContextSaveGState(currentContext);
+
     CGContextDrawPDFPage (currentContext, SourcePDFPage);
     CGContextRestoreGState(currentContext);
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
