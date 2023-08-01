@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_plugin_pdf_viewer/flutter_plugin_pdf_viewer.dart';
 import 'package:numberpicker/numberpicker.dart';
-import 'tooltip.dart';
 
 enum IndicatorPosition { topLeft, topRight, bottomLeft, bottomRight }
 
@@ -16,8 +15,8 @@ class PDFViewer extends StatefulWidget {
   final PDFViewerTooltip tooltip;
 
   PDFViewer(
-      {Key key,
-      @required this.document,
+      {Key? key,
+      required this.document,
       this.indicatorText = Colors.white,
       this.indicatorBackground = Colors.black54,
       this.showIndicator = true,
@@ -34,8 +33,8 @@ class _PDFViewerState extends State<PDFViewer> {
   bool _isLoading = true;
   int _pageNumber = 1;
   int _oldPage = 0;
-  PDFPage _page;
-  List<PDFPage> _pages = List();
+  late PDFPage _page;
+  List<PDFPage> _pages = [];
 
   @override
   void didChangeDependencies() {
@@ -65,7 +64,7 @@ class _PDFViewerState extends State<PDFViewer> {
       _oldPage = _pageNumber;
       _page = await widget.document.get(page: _pageNumber);
     }
-    if(this.mounted) {
+    if (this.mounted) {
       setState(() => _isLoading = false);
     }
   }
@@ -103,19 +102,18 @@ class _PDFViewerState extends State<PDFViewer> {
     showDialog<int>(
         context: context,
         builder: (BuildContext context) {
-          return NumberPickerDialog.integer(
-            title: Text(widget.tooltip.pick),
+          return NumberPicker(
+            // title: Text(widget.tooltip.pick),
+            value: _pageNumber,
             minValue: 1,
-            cancelWidget: Container(),
             maxValue: widget.document.count,
-            initialIntegerValue: _pageNumber,
+            // cancelWidget: Container(),
+            onChanged: (value) => setState(() {
+              _pageNumber = value;
+              _loadPage();
+            }),
           );
-        }).then((int value) {
-      if (value != null) {
-        _pageNumber = value;
-        _loadPage();
-      }
-    });
+        });
   }
 
   @override
@@ -197,7 +195,7 @@ class _PDFViewerState extends State<PDFViewer> {
                 ],
               ),
             )
-            : null,
+          : null,
     );
   }
 }

@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter_advanced_networkimage_2/zoomable.dart';
 
 class PDFPage extends StatefulWidget {
@@ -14,7 +12,7 @@ class PDFPage extends StatefulWidget {
 }
 
 class _PDFPageState extends State<PDFPage> {
-  ImageProvider provider;
+  late ImageProvider provider;
 
   @override
   void didChangeDependencies() {
