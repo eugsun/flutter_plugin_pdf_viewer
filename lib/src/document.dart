@@ -85,12 +85,12 @@ class PDFDocument {
   }
 
   // Stream all pages
-  Stream<PDFPage> getAll() {
-    return Future.forEach<PDFPage>(List.generate(count, (i) => i), (i) async {
+  Stream<PDFPage> getAll() async* {
+    for (int i = 0; i < count; i++) {
       print(i);
       final data = await _channel
           .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': i});
-      return new PDFPage(data, 1);
-    }).asStream() as Stream<PDFPage>;
+      yield new PDFPage(data, i);
+    }
   }
 }
